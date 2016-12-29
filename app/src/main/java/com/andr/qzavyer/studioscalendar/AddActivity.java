@@ -6,11 +6,15 @@ import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
 public class AddActivity extends AppCompatActivity {
+
+    final String LOG_TAG = "AddActivity";
+
     Button btOk;
     Button btCancel;
     EditText nameEdit;
@@ -23,7 +27,7 @@ public class AddActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_day);
+        setContentView(R.layout.activity_add);
         final Context context = this;
         nameEdit = (EditText) findViewById(R.id.nameEdit);
         addressEdit = (EditText) findViewById(R.id.addressEdit);
@@ -32,8 +36,8 @@ public class AddActivity extends AppCompatActivity {
         webEdit = (EditText) findViewById(R.id.webEdit);
         calendarEdit = (EditText) findViewById(R.id.calendarEdit);
         btOk = (Button) findViewById(R.id.btOk);
-        View.OnClickListener okClick = new View.OnClickListener(){
-            public void onClick(View v){
+        View.OnClickListener okClick = new View.OnClickListener() {
+            public void onClick(View v) {
                 ContentValues cv = new ContentValues();
                 String name = nameEdit.getText().toString();
                 String address = addressEdit.getText().toString();
@@ -50,7 +54,7 @@ public class AddActivity extends AppCompatActivity {
                 DBHelper dbHelper = new DBHelper(context);
                 // подключаемся к БД
                 SQLiteDatabase db = dbHelper.getWritableDatabase();
-                db.insert("studios",null, cv);
+                db.insert("studios", null, cv);
                 dbHelper.close();
                 Intent intent = new Intent(context, MainActivity.class);
                 startActivity(intent);
@@ -58,8 +62,8 @@ public class AddActivity extends AppCompatActivity {
         };
         btOk.setOnClickListener(okClick);
         btCancel = (Button) findViewById(R.id.btCancel);
-        View.OnClickListener cancelClick = new View.OnClickListener(){
-            public void onClick(View v){
+        View.OnClickListener cancelClick = new View.OnClickListener() {
+            public void onClick(View v) {
                 Intent intent = new Intent(context, MainActivity.class);
                 startActivity(intent);
             }
