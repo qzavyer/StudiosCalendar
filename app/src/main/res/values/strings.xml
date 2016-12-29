@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">StudiosCalendar</string>
+    <string name="studioName">Название</string>
+    <string name="studioAddress">Адрес</string>
+    <string name="studioPhone">Телефон</string>
+    <string name="studioEmail">E-mail</string>
+    <string name="studioWeb">Адрес сайта</string>
+    <string name="studioSave">Сохранить</string>
+    <string name="studioCancel">Отмена</string>
+</resources>

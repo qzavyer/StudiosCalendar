@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:weightSum="1">
+
+    <TextView
+        android:text="@string/studioName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/nameView" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textPersonName"
+        android:text=""
+        android:ems="10"
+        android:id="@+id/nameEdit" />
+
+    <TextView
+        android:text="@string/studioAddress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/addressView" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textPostalAddress"
+        android:ems="10"
+        android:id="@+id/addressEdit"
+        android:layout_weight="0.28" />
+
+    <TextView
+        android:text="@string/studioPhone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/phoneView" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="phone"
+        android:ems="10"
+        android:id="@+id/phoneEdit" />
+
+    <TextView
+        android:text="@string/studioEmail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/emailView" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textEmailAddress"
+        android:ems="10"
+        android:id="@+id/emailEdit" />
+
+    <TextView
+        android:text="@string/studioWeb"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/webView" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textPersonName"
+        android:ems="10"
+        android:id="@+id/webEdit" />
+    <TextView
+        android:text="@string/studioWeb"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/calendarView" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textPersonName"
+        android:ems="10"
+        android:id="@+id/calendarEdit" />
+
+    <Button
+        android:text="@string/studioSave"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/btOk" />
+
+    <Button
+        android:text="@string/studioCancel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/btCancel" />
+</LinearLayout>
