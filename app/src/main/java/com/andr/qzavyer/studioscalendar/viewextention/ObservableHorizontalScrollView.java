@@ -1,4 +1,4 @@
-package com.andr.qzavyer.studioscalendar;
+package com.andr.qzavyer.studioscalendar.viewextention;
 
 import android.content.Context;
 import android.util.AttributeSet;

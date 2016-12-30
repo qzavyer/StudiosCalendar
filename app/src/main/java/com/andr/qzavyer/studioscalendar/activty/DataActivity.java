@@ -1,11 +1,9 @@
-package com.andr.qzavyer.studioscalendar;
+package com.andr.qzavyer.studioscalendar.activty;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
-/**
- * Created by Nikiforov_S on 26.12.2016.
- */
+import com.andr.qzavyer.studioscalendar.R;
 
 public class DataActivity extends AppCompatActivity {
     @Override

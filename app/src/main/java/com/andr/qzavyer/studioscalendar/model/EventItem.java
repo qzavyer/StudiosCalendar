@@ -1,4 +1,4 @@
-package com.andr.qzavyer.studioscalendar;
+package com.andr.qzavyer.studioscalendar.model;
 
 import java.util.Date;
 

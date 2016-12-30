@@ -8,4 +8,5 @@
     <string name="studioSave">Сохранить</string>
     <string name="studioCancel">Отмена</string>
     <string name="studioCalendar">Идентификатор календаря</string>
+    <string name="choice">Выбрать</string>
 </resources>

@@ -1,4 +1,4 @@
-package com.andr.qzavyer.studioscalendar;
+package com.andr.qzavyer.studioscalendar.database;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;

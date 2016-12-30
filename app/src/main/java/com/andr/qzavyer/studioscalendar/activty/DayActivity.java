@@ -1,4 +1,4 @@
-package com.andr.qzavyer.studioscalendar;
+package com.andr.qzavyer.studioscalendar.activty;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -18,13 +18,19 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
+import com.andr.qzavyer.studioscalendar.database.DBHelper;
+import com.andr.qzavyer.studioscalendar.model.EventItem;
+import com.andr.qzavyer.studioscalendar.viewextention.HorizontalScrollViewListener;
+import com.andr.qzavyer.studioscalendar.viewextention.ObservableHorizontalScrollView;
+import com.andr.qzavyer.studioscalendar.R;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DayActivity extends AppCompatActivity implements HorizontalScrollViewListener{
+public class DayActivity extends AppCompatActivity implements HorizontalScrollViewListener {
     public final String LOG_TAG = "DayActivity";
 
     public static final String[] EVENT_PROJECTION = new String[]{
@@ -230,7 +236,7 @@ public class DayActivity extends AppCompatActivity implements HorizontalScrollVi
                 TextView rowCell = new TextView(this);
                 rowCell.setText(content.get(i)[j]);
                 rowCell.setPadding(10, 0, 0, 0);
-                rowCell.setGravity(Gravity.RIGHT);
+                rowCell.setGravity(Gravity.END);
                 rowCell.setTextColor(Color.parseColor("#FF000000"));
                 row.addView(rowCell);
                 if (content.get(i)[j]!=null&&content.get(i)[j].length() > maxContentChars[j-1]) {
