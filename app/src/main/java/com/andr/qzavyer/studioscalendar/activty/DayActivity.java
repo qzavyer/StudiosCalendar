@@ -18,14 +18,15 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
+import com.andr.qzavyer.studioscalendar.R;
 import com.andr.qzavyer.studioscalendar.database.DBHelper;
 import com.andr.qzavyer.studioscalendar.model.EventItem;
 import com.andr.qzavyer.studioscalendar.viewextention.HorizontalScrollViewListener;
 import com.andr.qzavyer.studioscalendar.viewextention.ObservableHorizontalScrollView;
-import com.andr.qzavyer.studioscalendar.R;
 
-import java.text.SimpleDateFormat;
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -88,6 +89,8 @@ public class DayActivity extends AppCompatActivity implements HorizontalScrollVi
             DBHelper dbHelper = new DBHelper(this);
             @SuppressLint("UseSparseArrays")
             Map<Integer, String> addresses = new HashMap<>();
+            @SuppressLint("UseSparseArrays")
+            Map<Integer, String> names = new HashMap<>();
             // подключаемся к БД
             SQLiteDatabase db = dbHelper.getWritableDatabase();
             // делаем запрос всех данных из таблицы studios, получаем Cursor
@@ -96,22 +99,29 @@ public class DayActivity extends AppCompatActivity implements HorizontalScrollVi
             // ставим позицию курсора на первую строку выборки
             if (c.moveToFirst()) {
                 // определяем номера столбцов по имени в выборке
-                int idColIndex = c.getColumnIndex("id");
                 int nameColIndex = c.getColumnIndex("calendar");
+                int titleColIndex = c.getColumnIndex("name");
+                int index = 0;
                 do {
-                    // получаем значения по номерам столбцов и пишем все в лог
-                    addresses.put(c.getInt(idColIndex), c.getString(nameColIndex));
+                    addresses.put(index, c.getString(nameColIndex));
+                    names.put(index, c.getString(titleColIndex));
                     // переход на следующую строку
                     // а если следующей нет (текущая - последняя), то выходим из цикла
                 } while (c.moveToNext());
             }
             c.close();
 
-            ArrayList<EventItem> events = new ArrayList<>();
+            // матрица занятости (для каждой студии для каждого часа
+            Boolean[][] busy = new Boolean[addresses.size()][24];
+
+            DateFormat dateFormat = DateFormat.getDateInstance();
+
             for (Map.Entry<Integer, String> entry : addresses.entrySet()) {
                 String[] calArgs = new String[]{entry.getValue()};
                 String selection = "((" + CalendarContract.Events.CALENDAR_ID + " = ?) AND (" +
-                        CalendarContract.Events.ACCOUNT_NAME + " = ?))";
+                        CalendarContract.Events.ACCOUNT_NAME + " = ?) AND (" +
+                        CalendarContract.Events.DTSTART + " >= ?) AND (" +
+                        CalendarContract.Events.DTEND + " < ?))";
                 // Проверка разрешения чтения календаря, если нет, запрашиваем разрешение
                 if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions(this,
@@ -130,67 +140,68 @@ public class DayActivity extends AppCompatActivity implements HorizontalScrollVi
                             calID = calCur.getLong(PROJECTION_ID_INDEX);
                         }
                     }
-                    String[] selectionArgs = new String[]{Long.toString(calID), entry.getValue()};
+                    String[] selectionArgs = new String[]{Long.toString(calID), entry.getValue(), null/* начальная дата событий*/, null/*конецная дата событий*/};
+                    // отправка запроса на получение событий календаря
                     @SuppressLint("Recycle")
                     Cursor cur = cr.query(uri, EVENT_PROJECTION, selection, selectionArgs, null);
                     if (cur != null) {
                         while (cur.moveToNext()) {
                             long eidName;
                             String endName;
-                            String statusName;
                             String startName;
                             // Get the field values
                             eidName = cur.getLong(PROJECTION_ID_INDEX);
-                            statusName = cur.getString(PROJECTION_STATUS);
                             startName = cur.getString(PROJECTION_DTSTART);
                             endName = cur.getString(PROJECTION_DTEND);
+
+                            Date startDate = dateFormat.parse(startName);
+                            Date endDate = dateFormat.parse(endName);
+
                             EventItem event = new EventItem();
                             event.setId(eidName);
                             event.setStatus(1);
                             event.setName("");
                             event.setStudioId(calID);
-                            event.setStart(new Date());
-                            event.setEnd(new Date());
-                            events.add(event);
-                            content.add(new String[]{statusName, startName, endName, startName, endName, startName, endName, startName, endName, startName, endName});
+                            event.setStart(startDate);
+                            event.setEnd(endDate);
+                            Calendar cal = Calendar.getInstance();
+                            cal.setTime(startDate);
+                            int startHour = cal.get(Calendar.HOUR_OF_DAY);
+                            cal.setTime(endDate);
+                            int endHour = cal.get(Calendar.HOUR_OF_DAY);
+                            int endMin = cal.get(Calendar.MINUTE);
+                            if (endMin > 0) {
+                                endHour++;
+                            }
+                            if (endHour < startHour) {
+                                endHour = 24;
+                            }
+                            for (int i = startHour; i <= endHour; i++) {
+                                busy[entry.getKey()][i] = true;
+                            }
                         }
                     }
                 } catch (Exception e) {
                     Log.e(LOG_TAG, e.getMessage());
                 }
             }
-            //dayMain = (LinearLayout)findViewById(R.id.dayMain);
-            Date today = new Date();
-            String[] data = {
-                    "00:00 - 01:00",
-                    "01:00 - 02:00",
-                    "02:00 - 03:00",
-                    "03:00 - 04:00",
-                    "04:00 - 05:00",
-                    "05:00 - 06:00",
-                    "06:00 - 07:00",
-                    "07:00 - 08:00",
-                    "08:00 - 09:00",
-                    "09:00 - 10:00",
-                    "10:00 - 11:00",
-                    "11:00 - 12:00",
-                    "12:00 - 13:00",
-                    "13:00 - 14:00",
-                    "14:00 - 15:00",
-                    "15:00 - 16:00",
-                    "16:00 - 17:00",
-                    "17:00 - 18:00",
-                    "18:00 - 19:00",
-                    "19:00 - 20:00",
-                    "20:00 - 21:00",
-                    "21:00 - 22:00",
-                    "22:00 - 23:00",
-                    "23:00 - 00:00"
-            };
-            @SuppressLint("SimpleDateFormat")
-            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-            //format.parse()
 
+            for (Integer i = -1; i < 24; i++) {
+                ArrayList<String> strings = new ArrayList<>();
+                if (i == -1) {
+                    strings.add("Время");
+                } else {
+                    strings.add(i.toString() + ":00 - " + (i + 1) + ":00");
+                }
+                for (Map.Entry<Integer, String> entry : names.entrySet()) {
+                    if (i == -1) {
+                        strings.add(entry.getValue());
+                    } else {
+                        strings.add(busy[entry.getKey()][i] ? "+" : " ");
+                    }
+                }
+                content.add(strings.toArray(new String[0]));
+            }
         } catch (Exception e) {
             e.printStackTrace();
             Log.e(LOG_TAG, e.getMessage());
@@ -266,10 +277,10 @@ public class DayActivity extends AppCompatActivity implements HorizontalScrollVi
     }
 
     private void setChildTextViewWidths(TableRow row, int[] widths) {
-        if (null==row) {
+        if (null == row) {
             return;
         }
-int cellWidthFactor = 10;
+        int cellWidthFactor = 10;
         for (int i = 0; i < row.getChildCount(); i++) {
             TextView cell = (TextView) row.getChildAt(i);
             int replacementWidth =
@@ -279,7 +290,7 @@ int cellWidthFactor = 10;
                             ? (int) Math.ceil(widths[i] * cellWidthFactor * 1.7)
                             : widths[i] < 5
                             ? (int) Math.ceil(widths[i] * cellWidthFactor * 1.2)
-                            :widths[i] * cellWidthFactor;
+                            : widths[i] * cellWidthFactor;
             cell.setMinimumWidth(replacementWidth);
             //cell.setMaxWidth(replacementWidth);
         }
