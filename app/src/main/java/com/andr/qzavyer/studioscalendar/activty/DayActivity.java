@@ -20,11 +20,10 @@ import android.widget.TextView;
 
 import com.andr.qzavyer.studioscalendar.R;
 import com.andr.qzavyer.studioscalendar.database.DBHelper;
-import com.andr.qzavyer.studioscalendar.model.EventItem;
 import com.andr.qzavyer.studioscalendar.viewextention.HorizontalScrollViewListener;
 import com.andr.qzavyer.studioscalendar.viewextention.ObservableHorizontalScrollView;
 
-import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -46,14 +45,11 @@ public class DayActivity extends AppCompatActivity implements HorizontalScrollVi
             CalendarContract.Calendars.NAME
     };
 
-    // The indices for the projection array above.
     private static final int PROJECTION_ID_INDEX = 0;
-    private static final int PROJECTION_STATUS = 1;
+    //private static final int PROJECTION_STATUS = 1;
     private static final int PROJECTION_DTSTART = 2;
     private static final int PROJECTION_DTEND = 3;
     private static final int REQUEST_LOCATION = 2;
-
-   // LinearLayout dayMain;
 
     private TableLayout frozenHeaderTable;
     private TableLayout contentHeaderTable;
@@ -79,13 +75,17 @@ public class DayActivity extends AppCompatActivity implements HorizontalScrollVi
         InitializeInitialData();
     }
 
+    @SuppressLint("DefaultLocale")
     protected void InitializeInitialData() {
         ArrayList<String[]> content = new ArrayList<>();
         try {
             ContentResolver cr = getContentResolver();
             Uri uri = CalendarContract.Events.CONTENT_URI;
             Uri calUri = CalendarContract.Calendars.CONTENT_URI;
-            String calSel = "(" + CalendarContract.Calendars.NAME + " = ?)";
+            String calSel = "((" + CalendarContract.Calendars.ACCOUNT_NAME + " = ?) AND ("
+                    + CalendarContract.Calendars.ACCOUNT_TYPE + " = ?)" +
+                    " AND (" + CalendarContract.Calendars.OWNER_ACCOUNT + " = ?)" +
+                    ")";
             DBHelper dbHelper = new DBHelper(this);
             @SuppressLint("UseSparseArrays")
             Map<Integer, String> addresses = new HashMap<>();
@@ -105,6 +105,7 @@ public class DayActivity extends AppCompatActivity implements HorizontalScrollVi
                 do {
                     addresses.put(index, c.getString(nameColIndex));
                     names.put(index, c.getString(titleColIndex));
+                    index++;
                     // переход на следующую строку
                     // а если следующей нет (текущая - последняя), то выходим из цикла
                 } while (c.moveToNext());
@@ -113,15 +114,20 @@ public class DayActivity extends AppCompatActivity implements HorizontalScrollVi
 
             // матрица занятости (для каждой студии для каждого часа
             Boolean[][] busy = new Boolean[addresses.size()][24];
-
-            DateFormat dateFormat = DateFormat.getDateInstance();
-
+            for (int i = 0; i < addresses.size(); i++) {
+                for (int j = 0; j < 24; j++) {
+                    busy[i][j] = false;
+                }
+            }
             for (Map.Entry<Integer, String> entry : addresses.entrySet()) {
-                String[] calArgs = new String[]{entry.getValue()};
+                String[] calArgs = new String[]{entry.getValue(), "LOCAL"
+                        , entry.getValue()
+                };
                 String selection = "((" + CalendarContract.Events.CALENDAR_ID + " = ?) AND (" +
                         CalendarContract.Events.ACCOUNT_NAME + " = ?) AND (" +
-                        CalendarContract.Events.DTSTART + " >= ?) AND (" +
-                        CalendarContract.Events.DTEND + " < ?))";
+                        CalendarContract.Events.ACCOUNT_TYPE + " = ?" +
+                        ") AND (" + CalendarContract.Events.DTSTART + " >= ?) AND (" + CalendarContract.Events.DTEND + " < ?)" +
+                        ")";
                 // Проверка разрешения чтения календаря, если нет, запрашиваем разрешение
                 if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions(this,
@@ -140,41 +146,32 @@ public class DayActivity extends AppCompatActivity implements HorizontalScrollVi
                             calID = calCur.getLong(PROJECTION_ID_INDEX);
                         }
                     }
-                    String[] selectionArgs = new String[]{Long.toString(calID), entry.getValue(), null/* начальная дата событий*/, null/*конецная дата событий*/};
+                    @SuppressLint("SimpleDateFormat")
+                    SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd");
+                    Date dateb = f.parse("2017-01-08");
+                    Date datee = f.parse("2017-01-09");
+                    String[] selectionArgs = new String[]{
+                            Long.toString(calID), entry.getValue(), "com.google",
+                            Long.toString(dateb.getTime()), Long.toString(datee.getTime())
+                    };
                     // отправка запроса на получение событий календаря
                     @SuppressLint("Recycle")
                     Cursor cur = cr.query(uri, EVENT_PROJECTION, selection, selectionArgs, null);
                     if (cur != null) {
                         while (cur.moveToNext()) {
-                            long eidName;
-                            String endName;
-                            String startName;
-                            // Get the field values
-                            eidName = cur.getLong(PROJECTION_ID_INDEX);
-                            startName = cur.getString(PROJECTION_DTSTART);
-                            endName = cur.getString(PROJECTION_DTEND);
-
-                            Date startDate = dateFormat.parse(startName);
-                            Date endDate = dateFormat.parse(endName);
-
-                            EventItem event = new EventItem();
-                            event.setId(eidName);
-                            event.setStatus(1);
-                            event.setName("");
-                            event.setStudioId(calID);
-                            event.setStart(startDate);
-                            event.setEnd(endDate);
+                            Long startName = cur.getLong(PROJECTION_DTSTART);
+                            Long endName = cur.getLong(PROJECTION_DTEND);
                             Calendar cal = Calendar.getInstance();
-                            cal.setTime(startDate);
+                            cal.setTimeInMillis(startName);
                             int startHour = cal.get(Calendar.HOUR_OF_DAY);
-                            cal.setTime(endDate);
+                            cal.setTimeInMillis(endName);
                             int endHour = cal.get(Calendar.HOUR_OF_DAY);
                             int endMin = cal.get(Calendar.MINUTE);
                             if (endMin > 0) {
                                 endHour++;
                             }
-                            if (endHour < startHour) {
-                                endHour = 24;
+                            if (endHour < startHour || endHour > 23) {
+                                endHour = 23;
                             }
                             for (int i = startHour; i <= endHour; i++) {
                                 busy[entry.getKey()][i] = true;
@@ -191,7 +188,7 @@ public class DayActivity extends AppCompatActivity implements HorizontalScrollVi
                 if (i == -1) {
                     strings.add("Время");
                 } else {
-                    strings.add(i.toString() + ":00 - " + (i + 1) + ":00");
+                    strings.add(String.format("%02d", i) + ":00 - " + String.format("%02d", i + 1) + ":00");
                 }
                 for (Map.Entry<Integer, String> entry : names.entrySet()) {
                     if (i == -1) {
@@ -203,7 +200,6 @@ public class DayActivity extends AppCompatActivity implements HorizontalScrollVi
                 content.add(strings.toArray(new String[0]));
             }
         } catch (Exception e) {
-            e.printStackTrace();
             Log.e(LOG_TAG, e.getMessage());
         }
 
